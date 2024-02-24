@@ -1,61 +1,51 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Enum
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Users(Base):
-    __tablename__ = 'users'
+
+class Follower(Base):
+    __tablename__ = 'follower'
     id = Column(Integer, primary_key=True)
+    user_from_id = Column(Integer, ForeignKey('user.id'))
+    user_from = relationship('User', foreign_keys=['user.id'])
+    user_to_id = Column(Integer, ForeignKey('user.id'))
+    user_to = relationship('User', foreign_keys=['user.id'])
+
+class User(Base):
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True)
+    username = Column(String(30), nullable=False, unique=True)
+    firstname = Column(String(40), nullable=False)
+    lastname = Column(String(40))
     email = Column(String(50), nullable=False, unique=True)
-    first_name = Column(String(100), nullable=False)
-    last_name = Column(String(50))
-    password = Column(String(16), nullable=False)
+
+class Post(Base):
+    __tablename__ = 'post'
+    id = Column(Integer, primary_key=True)
+    user_post_id = Column(Integer, ForeignKey('user.id'))
+    user_post = relationship('User', foreign_keys=['user.id'])
     
-class Posts(Base):
-    __tablename__ = 'posts'
+class Media(Base):
+    __tablename__ = 'media'
     id = Column(Integer, primary_key=True)
-    title = Column(String(250), nullable=False)
-    description = Column(String(500))
-    img_url = Column(String)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    users = relationship('Users')
+    type = Column(Enum, nullable=False)
+    url = Column(String)
+    post_id = Column(Integer, ForeignKey('post.id'))
+    post = relationship('Post')
 
-    def to_dict(self):
-        return {}
-
-class Planets(Base):
-    __tablename__ = 'planets'
-    id = Column(Integer, primary_key=True)   
-    name = Column(String, nullable=False) 
-
-class Characters_Films(Base):
-    __tablename__ = 'characters_films'
+class Comment(Base):
+    __tablename__ = 'comment'
     id = Column(Integer, primary_key=True)
-    character_id = Column(Integer, ForeignKey('characters.id'))
-    character = relationship('Characters', foreign_keys=['character_id'])
-    film_id = Column(Integer, ForeignKey('films.id'))
-    film = relationship('Films', foreign_keys=['film_id'])
-    minutes = Column(DateTime)
-
-class Characters(Base):
-    __tablename__ = 'characters'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    homeworld_Id = Column(Integer, ForeignKey('planets.id'))
-    homeworld = relationship('Planets')
-
-
-class Films(Base):
-    __tablename__ = 'films'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    year = Column(DateTime)
-    director = Column(String(50))
-
+    comment_text = Column(String(200), nullable=False)
+    author_id = Column(Integer, ForeignKey('user.id'))
+    author = relationship('User', foreign_keys=['user.id'])  
+    post_id = Column(Integer, ForeignKey('post.id'))
+    post = relationship('Post', foreign_keys=['post.id'])
 
 
 ## Draw from SQLAlchemy base
